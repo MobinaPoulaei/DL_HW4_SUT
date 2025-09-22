@@ -1,10 +1,11 @@
-# Deep Learning Homework 4: VAE and DDPM
+# Deep Learning Homework 4 - Sharif University of Technology
+### Instructor: Dr. Mahdieh Soleymani
 
 This repository contains my solutions and code for the fourth homework assignment of the Deep Learning course at Sharif University of Technology. This assignment focuses on generative models, including Variational Autoencoders (VAEs) and Denoising Diffusion Probabilistic Models (DDPMs), and their underlying theoretical frameworks and practical implementations.
 
 ---
 
-### **Theoretical Section**
+## **Theoretical Section**
 
 The theoretical portion of this homework covers the mathematical foundations and design principles of generative models. My solutions are submitted in a PDF file as required by the course. The topics covered include:
 
@@ -16,11 +17,11 @@ The theoretical portion of this homework covers the mathematical foundations and
 
 ---
 
-### **Practical Section**
+## **Practical Section**
 
 The practical part of this homework involves implementing and training two state-of-the-art generative models: a Variational Autoencoder and a Denoising Diffusion Probabilistic Model.
 
-#### **Variational AutoEncoder (VAE)**
+### **Variational AutoEncoder (VAE)**
 
 This project implements a VAE on the **Fashion-MNIST** dataset. It demonstrates how a VAE extends a standard autoencoder by learning a **probabilistic latent space**. The notebook covers:
 
@@ -31,7 +32,7 @@ This project implements a VAE on the **Fashion-MNIST** dataset. It demonstrates 
 * **Downstream Tasks**: Adding a classification head to the VAE to perform classification from the latent space.
 * **Adversarial Examples**: Generating adversarial images using the Fast Gradient Sign Method (FGSM) to test the robustness of the VAE.
 
-#### **Denoising Diffusion Probabilistic Models (DDPM)**
+### **Denoising Diffusion Probabilistic Models (DDPM)**
 
 This notebook implements a DDPM, a powerful generative model that progressively adds noise to images in a **forward process** and then learns to reverse this process. The final model is a U-Net trained to generate **MNIST** images from random noise. The implementation includes:
 
@@ -40,61 +41,3 @@ This notebook implements a DDPM, a powerful generative model that progressively 
 * **Attention Block**: Implementing an attention sub-module with Group Normalization, a multi-head attention mechanism from scratch, and a feed-forward layer.
 * **Time Embedding**: Incorporating time information into the network using **Sinusoidal position embeddings** as proposed in the ["Attention is All You Need"](https://arxiv.org/pdf/1706.03762.pdf) paper. This allows the model to predict noise for a specific time step.
 * **Final Architecture**: Combining all the sub-modules into the final DDPM U-Net model, with a specific architecture for the **contactive path**, **middle block**, and **expansive path** to generate high-quality images.
-
-### **DDPM Training and Sampling**
-
-The DDPM framework consists of two main processes: a **forward process** that adds noise and a **backward process** (denoising) that generates new data.
-
-#### **Training Algorithm**
-
-The training algorithm for the DDPM model is an iterative process. The model learns to denoise images by taking small steps of gradient descent.
-
-1.  A probability $p_{uncond}$ is defined for unconditional training.
-2.  The model samples a pair of a clean image and a condition, $(x, c)$, from the data distribution.
-3.  A `mask` is created, which is set to 0 with the probability $p_{uncond}$. This mask helps the model learn to generate images without a specific condition.
-4.  A time step $t$ is sampled uniformly from 1 to $T$.
-5.  Noise $\epsilon$ is sampled from a standard normal distribution.
-6.  The model then performs a gradient descent step to minimize the difference between the predicted noise and the actual noise:
-    
-    $ \nabla_{\theta} ||\epsilon - \epsilon_{\theta}(\sqrt{\bar{\alpha_t}}x_0 + \sqrt{1 - \bar{\alpha_t}}\epsilon, t, c, mask)|| $
-
-This process repeats until the model's parameters converge.
-
-#### **Sampling Algorithm**
-
-The DDPM sampling algorithm uses a classifier guidance method to generate a new image based on a specific condition. The sampling process starts from pure noise and iteratively denoises the image.
-
-1.  A guidance strength $w$ is defined.
-2.  The process begins by sampling pure noise $x_T$ from a standard normal distribution.
-3.  The algorithm then loops backward from $t=T$ down to 1.
-4.  Inside the loop, a noise vector $z$ is sampled from a normal distribution if $t>1$; otherwise, $z$ is set to 0.
-5.  The predicted noise, $\epsilon_{pred}$, is calculated using both the conditional and unconditional models:
-    
-    $ \epsilon_{pred} = (1+w)\epsilon_{\theta}(x_t, t, c, I) - w\epsilon_{\theta}(x_t, t, c, 0) $
-    
-6.  The image at the next time step, $x_{t-1}$, is then calculated using a formula that includes the current noisy image, the predicted noise, and the noise vector $z$:
-    
-    $ x_{t-1} = \frac{1}{\sqrt{\alpha_t}} \left( x_t - \frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \epsilon_{pred} \right) + \sigma_t z $
-    
-7.  After the loop finishes, the final denoised image $x_0$ is returned.
-
-### **Evaluation Metric: Fréchet Inception Distance (FID)**
-
-To evaluate the quality of the generated images, the **Fréchet Inception Distance (FID)** is used. FID is a widely used metric for assessing the similarity between the distributions of real and generated images in a feature space.
-
-#### **How FID Works:**
-
-1.  Both real and generated images are passed through a pretrained convolutional neural network (e.g., InceptionV3 or a lightweight alternative for MNIST).
-2.  Deep feature representations are extracted from a specific intermediate layer.
-3.  The distributions of these features (for real and generated images) are modeled as multivariate Gaussians.
-4.  The Fréchet Distance is then computed between these two Gaussians using the formula:
-    
-    $ \text{FID} = \|\mu_r - \mu_g\|^2 + \text{Tr}(\Sigma_r + \Sigma_g - 2(\Sigma_r \Sigma_g)^{1/2}) $
-    
-    * $\mu_r$, $\Sigma_r$: Mean and covariance of real image features
-    * $\mu_g$, $\Sigma_g$: Mean and covariance of generated image features
-    
-#### **Interpretation:**
-
-* **Lower FID values** indicate that the generated images are more similar to real images.
-* An FID of **0** means the generated distribution is identical to the real one.
